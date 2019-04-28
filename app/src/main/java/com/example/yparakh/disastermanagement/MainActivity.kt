@@ -19,7 +19,7 @@ import org.eclipse.paho.client.mqttv3.MqttException
 class MainActivity : AppCompatActivity() {
 
     private lateinit var mMessageListener: MessageListener
-    private lateinit var mMessage: Message
+    private var mMessage: Message? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,7 +59,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun publish() {
-        Nearby.getMessagesClient(this).publish(mMessage)
+        Nearby.getMessagesClient(this).publish(mMessage!!)
     }
 
     private fun unSubscribe() {
@@ -67,7 +67,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun unPublish() {
-        Nearby.getMessagesClient(this).unpublish(mMessage)
+        Nearby.getMessagesClient(this).unpublish(mMessage!!)
+        mMessage = null
     }
 
 
@@ -107,12 +108,9 @@ class MainActivity : AppCompatActivity() {
         private fun subscribe(subscribeTopic: String) {
             try {
                 client.subscribe(subscribeTopic, 0) { _, message ->
-                    mMessage = Message(message.toString().toByteArray())
                     runOnUiThread {
-                        publish()
                         Toast.makeText(context, message.toString(), Toast.LENGTH_SHORT).show()
-                    }
-                    Handler().post {
+                        mMessage = Message(message.toString().toByteArray())
                         publish()
                     }
                 }
